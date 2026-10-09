@@ -411,14 +411,14 @@
             currentQuestions = shuffle(JSON.parse(JSON.stringify(quizData)));
             currentQuestionIndex = 0;
             score = 0;
-            totalTimeLeft = 1200; // 20 นาที
+            totalTimeLeft = 900; // 15 นาที
             
             Swal.fire({
                 toast: true,
                 position: 'top-end',
                 icon: 'info',
                 title: 'เริ่มทำแบบทดสอบ',
-                text: 'คุณมีเวลาทั้งหมด 20 นาที',
+                text: 'คุณมีเวลาทั้งหมด 15 นาที',
                 showConfirmButton: false,
                 timer: 3000,
                 timerProgressBar: true
