@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>แบบทดสอบการดับเพลิงขั้นต้น</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'Prompt', sans-serif; background-color: #f3f4f6; }
+        .hidden { display: none !important; }
+        div:where(.swal2-container) { font-family: 'Prompt', sans-serif; }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+
+    <!-- Loading -->
+    <div id="loading" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+        <div class="bg-white p-6 rounded-xl shadow-2xl flex flex-col items-center">
+            <i class="fas fa-spinner fa-spin text-4xl text-orange-600 mb-3"></i>
+            <span class="text-gray-700 font-medium">กำลังประมวลผล...</span>
+        </div>
+    </div>
+
+    <!-- หน้าลงทะเบียน -->
+    <div id="register-page" class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border-t-8 border-orange-500">
+        <div class="text-center mb-6">
+            <div class="inline-block p-4 bg-orange-100 rounded-full mb-3">
+                <i class="fas fa-fire-extinguisher text-4xl text-orange-600"></i>
+            </div>
+            <h2 class="text-xl font-bold text-gray-800">หลักสูตรการดับเพลิงขั้นต้น ชุดที่ 1</h2>
+            <p class="text-sm text-gray-500 mt-1">เวลาทำ 20 นาที • 20 ข้อ • 20 คะแนน</p>
+        </div>
+
+        <form id="register-form" class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">ชื่อ-นามสกุล <span class="text-red-500">*</span></label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="fas fa-user text-gray-400"></i>
+                    </div>
+                    <input type="text" id="emp-name" placeholder="ระบุชื่อและนามสกุล" class="pl-10 block w-full rounded-lg border-gray-300 shadow-sm border p-2.5 focus:ring-orange-500 focus:border-orange-500" required>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">บริษัท/หน่วยงาน <span class="text-red-500">*</span></label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="fas fa-building text-gray-400"></i>
+                    </div>
+                    <input type="text" id="company" placeholder="ระบุบริษัทหรือหน่วยงาน" class="pl-10 block w-full rounded-lg border-gray-300 shadow-sm border p-2.5 focus:ring-orange-500 focus:border-orange-500" required>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">รอบการทดสอบ <span class="text-red-500">*</span></label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="fas fa-clipboard-list text-gray-400"></i>
+                    </div>
+                    <select id="test-type" class="pl-10 block w-full rounded-lg border-gray-300 shadow-sm border p-2.5 focus:ring-orange-500 focus:border-orange-500 appearance-none bg-white" required>
+                        <option value="" disabled selected>-- เลือกรอบการทดสอบ --</option>
+                        <option value="ก่อนการฝึกอบรม">ก่อนการฝึกอบรม</option>
+                        <option value="หลังการฝึกอบรม">หลังการฝึกอบรม</option>
+                    </select>
+                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                        <i class="fas fa-chevron-down text-gray-400 text-sm"></i>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="w-full flex justify-center items-center py-3 px-4 mt-6 border border-transparent rounded-lg shadow-md text-base font-medium text-white bg-orange-600 hover:bg-orange-700 transition-colors">
+                <i class="fas fa-play-circle mr-2"></i> เริ่มทำแบบทดสอบ
+            </button>
+        </form>
+    </div>
+
+    <!-- หน้าทำข้อสอบ -->
+    <div id="quiz-page" class="hidden bg-white p-6 md:p-8 rounded-2xl shadow-xl w-full max-w-lg border-t-8 border-orange-500">
+        <div class="flex justify-between items-center mb-6 border-b pb-4">
+            <span id="question-counter" class="text-gray-600 font-semibold text-lg">
+                <i class="fas fa-question-circle text-orange-500 mr-1"></i> ข้อ 1/20
+            </span>
+            <span id="timer" class="flex items-center text-gray-600 font-bold bg-gray-100 border border-gray-200 px-4 py-1.5 rounded-full shadow-sm">
+                <i class="fas fa-stopwatch mr-2 text-lg text-orange-500"></i> <span id="time-text">20:00</span>
+            </span>
+        </div>
+        
+        <h3 id="question-text" class="text-lg md:text-xl font-medium text-gray-800 mb-4 leading-relaxed"></h3>
+        
+        <!-- รูปภาพสำหรับข้อที่มีรูป (ข้อ 10) -->
+        <div id="image-container" class="hidden mb-6 flex justify-center">
+            <img id="question-image" src="" alt="ภาพประกอบข้อสอบ" class="max-w-full h-auto rounded-lg shadow border border-gray-200 max-h-64 object-contain">
+        </div>
+
+        <div id="choices-container" class="space-y-3 mb-6"></div>
+
+        <button id="btn-confirm" onclick="confirmAnswer()" class="hidden w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-lg shadow-md text-base font-medium text-white bg-green-600 hover:bg-green-700 transition-colors mt-4">
+            <i class="fas fa-check-circle mr-2"></i> ยืนยันคำตอบ
+        </button>
+    </div>
+
+    <!-- หน้าแสดงผลคะแนน -->
+    <div id="result-page" class="hidden bg-white p-8 rounded-2xl shadow-xl w-full max-w-md text-center border-t-8 border-green-500">
+        <div class="inline-block p-5 bg-green-100 rounded-full mb-4">
+            <i class="fas fa-trophy text-5xl text-green-500"></i>
+        </div>
+        <h2 class="text-3xl font-bold text-gray-800 mb-2">เสร็จสิ้นการทดสอบ!</h2>
+        <p class="text-gray-500 mb-6">ส่งคำตอบของคุณเรียบร้อยแล้ว</p>
+        
+        <div class="bg-gradient-to-r from-orange-50 to-yellow-50 border border-orange-100 p-6 rounded-xl mb-8">
+            <p class="text-sm font-medium text-gray-600 uppercase tracking-wider mb-1">คะแนนที่ได้</p>
+            <div class="flex justify-center items-baseline text-orange-600">
+                <span id="score-display" class="text-5xl font-extrabold">0</span>
+                <span class="text-2xl font-bold text-gray-400 mx-1">/</span>
+                <span id="total-display" class="text-2xl font-bold text-gray-400">20</span>
+            </div>
+        </div>
+        
+        <button onclick="location.reload()" class="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-base font-medium text-white bg-gray-700 hover:bg-gray-800 transition-colors">
+            <i class="fas fa-home mr-2"></i> กลับหน้าหลัก
+        </button>
+    </div>
+
+    <script>
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbye9RnYK7rakAgp4Fuf5gtR0KfjrSXs6iL22-pHyIUUzmEWJf25hLCxlZAoWGu4h2f4/exec'; // ใส่ URL จาก Google Apps Script
+
+        const quizData = [
+            {
+                q: "1. องค์ประกอบของไฟมีกี่องค์ประกอบ อะไรบ้าง",
+                choices: [
+                    "2 องค์ประกอบ ได้แก่ เชื้อเพลิง และน้ำมัน",
+                    "3 องค์ประกอบ ได้แก่ เชื้อเพลิง ออกซิเจน และความร้อน",
+                    "4 องค์ประกอบ ได้แก่ ดิน น้ำมัน ลม ไฟ",
+                    "5 องค์ประกอบ ได้แก่ ไม้ขีดไฟ หรือไฟแช็ค"
+                ],
+                ans: "3 องค์ประกอบ ได้แก่ เชื้อเพลิง ออกซิเจน และความร้อน"
+            },
+            {
+                q: "2. ข้อใดเป็นไฟประเภท เอ",
+                choices: [
+                    "ไฟที่เกิดจากสารเคมีไวไฟ",
+                    "ไฟที่เกิดจากน้ำมัน",
+                    "ไฟที่เกิดจากไฟฟ้าลัดวงจร",
+                    "ไฟที่เกิดจากกระดาษ ไม้ เศษผ้า"
+                ],
+                ans: "ไฟที่เกิดจากกระดาษ ไม้ เศษผ้า"
+            },
+            {
+                q: "3. การฉีดสารดับเพลิงให้ดับไฟได้ดีที่สุดจะต้องฉีดบริเวณใด",
+                choices: [
+                    "ฉีดให้คลุมที่ฐานของไฟ",
+                    "ฉีดที่เปลวไฟ",
+                    "ฉีดบริเวณไหนก็ได้",
+                    "ฉีดให้หมดถัง"
+                ],
+                ans: "ฉีดให้คลุมที่ฐานของไฟ"
+            },
+            {
+                q: "4. เมื่อพบเหตุเพลิงไหม้ต้องทำอย่างไรเป็นอันดับแรกๆ",
+                choices: [
+                    "วิ่งหนี",
+                    "แจ้งคนที่อยู่ใกล้ที่สุด",
+                    "วิ่งไปเก็บของสำคัญ",
+                    "อยู่เฉยๆ ไม่ใช่หน้าที่เรา"
+                ],
+                ans: "แจ้งคนที่อยู่ใกล้ที่สุด"
+            },
+            {
+                q: "5. หากเกิดเหตุเพลิงไหม้ขั้นรุนแรง จนไม่สามารถควบคุมได้ท่านจะทำอย่างไร",
+                choices: [
+                    "หาน้ำมาดับต่อไปจนกว่าไฟจะดับ",
+                    "ขนย้ายสิ่งของออกจากที่เกิดเหตุ",
+                    "เข้าไปเก็บของในห้องทำงานก่อน",
+                    "วิ่งออกจากสถานที่เกิดเหตุเพลิงไหม้ทันที"
+                ],
+                ans: "วิ่งออกจากสถานที่เกิดเหตุเพลิงไหม้ทันที"
+            },
+            {
+                q: "6. ข้อใดทำให้ปลอดภัยจากเหตุเพลิงไหม้ที่สุด",
+                choices: [
+                    "มีแฟนเป็นเจ้าหน้าที่ดับเพลิง",
+                    "จัดเก็บสิ่งของเครื่องใช้ให้เป็นระเบียบ ตรวจตราการปิด-เปิดและถอดปลั๊กอุปกรณ์ไฟฟ้าทุกชนิดหลังเลิกงาน",
+                    "ซื้ออุปกรณ์ไฟฟ้าที่ได้มาตรฐาน มอก.",
+                    "ข้อ ข. และข้อ ค. ถูก"
+                ],
+                ans: "ข้อ ข. และข้อ ค. ถูก"
+            },
+            {
+                q: "7. การป้องกันและระงับอัคคีภัยในสถานที่ทำงานเป็นหน้าที่ของใคร",
+                choices: [
+                    "เจ้าหน้าที่รักษาความปลอดภัย",
+                    "เจ้าหน้าที่ธุรการ",
+                    "พนักงาน/เจ้าหน้าที่ทุกคน",
+                    "ผู้ที่ได้รับมอบหมายจากหน่วยงานโดยเฉพาะ"
+                ],
+                ans: "พนักงาน/เจ้าหน้าที่ทุกคน"
+            },
+            {
+                q: "8. “2A 20B” ที่แจ้งไว้ข้างเครื่องดับเพลิงหมายถึงอะไร",
+                choices: [
+                    "ขนาดของเครื่องดับเพลิง",
+                    "มาตรวัดความดันของเครื่องดับเพลิง",
+                    "ประสิทธิภาพหรือความสามารถของเครื่องดับเพลิง",
+                    "ชนิดของเครื่องดับเพลิง"
+                ],
+                ans: "ประสิทธิภาพหรือความสามารถของเครื่องดับเพลิง"
+            },
+            {
+                q: "9. หากเกิดเหตุเพลิงไหม้ในห้องอุปกรณ์ไฟฟ้า ที่มีกระแสไฟฟ้าไหลอยู่ควรเลือกใช้เครื่องดับเพลิงชนิดใดเหมาะสมที่สุด",
+                choices: [
+                    "ชนิดน้ำ",
+                    "ชนิดผงเคมีแห้ง",
+                    "ชนิดคาร์บอนไดออกไซด์ (CO₂)",
+                    "ใช้ได้ทุกชนิด"
+                ],
+                ans: "ชนิดคาร์บอนไดออกไซด์ (CO₂)"
+            },
+            {
+                q: "10. มาตรวัดความดันของเครื่องดับเพลิงตามข้อใดแสดงว่า เครื่องดับเพลิงอยู่ในสภาพพร้อมใช้งาน",
+                // ใส่ URL รูปภาพของมาตรวัดความดันในเครื่องหมายคำพูดด้านล่างนี้
+                image: "https://docs.google.com/forms-images-rt/ANbbkih2gq38997qXVXNUAskUD4zAtnuWzmEUM4Is6iI_8trC2U4qMpMjISLQM1NqiTdZGiDiXntV3XWI0vNZ6rZMZeSGngO69zPyo6cojx-7Ahjc8tprNMb0iD4jIahyg_j5z5N85SQY7tB2UlYsg59KH6p7FKz5sGGo32gSa5NrM7FkjeWYwXWcyXdGq_Et5shXB8AyrIx=w740", 
+                choices: [
+                    "รูปที่ 1",
+                    "รูปที่ 2",
+                    "รูปที่ 3",
+                    "รูปที่ 4"
+                ],
+                ans: "รูปที่ 2" // แก้ไขเฉลยให้ตรงกับรูปภาพของคุณ
+            },
+            {
+                q: "11. ข้อใดเป็นวิธีการใช้ถังดับเพลิง",
+                choices: [
+                    "ยก - ดึง - กด - ส่าย",
+                    "ยก - วาง - ดึง - กด",
+                    "ดึง - หมุน - วาง - กด",
+                    "ดึง - ปลด - กด - ส่าย"
+                ],
+                ans: "ดึง - ปลด - กด - ส่าย"
+            },
+            {
+                q: "12. ข้อใดคือสัญลักษณ์ของเชื้อเพลิงประเภทของเหลวติดไฟได้",
+                choices: [
+                    "ตัวอักษร A ในรูปสามเหลี่ยมพื้นสีเขียว",
+                    "ตัวอักษร B ในรูปสี่เหลี่ยมพื้นสีแดง",
+                    "ตัวอักษร C ในรูปวงพื้นสีน้ำเงิน",
+                    "ตัวอักษร D ในรูปดาวห้าแฉกพื้นสีเหลือง"
+                ],
+                ans: "ตัวอักษร B ในรูปสี่เหลี่ยมพื้นสีแดง"
+            },
+            {
+                q: "13. หากพบผู้ประสบภัยเป็นเด็กผู้หญิงอายุ 3 ขวบมีอาการบาดเจ็บที่เท้า การเคลื่อนย้ายแบบใดเหมาะสมที่สุด",
+                choices: [
+                    "วิธีพยุงเดิน",
+                    "วิธีลากด้วยผ้าห่ม",
+                    "ใช้เปลหาม",
+                    "วิธีอุ้ม"
+                ],
+                ans: "วิธีอุ้ม"
+            },
+            {
+                q: "14. หากท่านอยู่ในอาคารที่กำลังเกิดเหตุเพลิงไหม้ท่านควรอพยพหนีไฟอย่างไร",
+                choices: [
+                    "ใช้บันไดหนีไฟทิศทางลงข้างล่าง",
+                    "ใช้เพื่อนนำทาง",
+                    "ใช้เจ้าหน้าที่ดับเพลิงนำทาง",
+                    "ใช้ GPS นำทาง"
+                ],
+                ans: "ใช้บันไดหนีไฟทิศทางลงข้างล่าง"
+            },
+            {
+                q: "15. ถ้ามีกระแสไฟฟ้าลัดวงจรข้อใดกล่าวถูกต้อง",
+                choices: [
+                    "ห้ามตัดกระแสไฟฟ้า",
+                    "ห้ามใช้น้ำทำการดับ",
+                    "ห้ามแจ้งคนอื่น",
+                    "ถูกทุกข้อ"
+                ],
+                ans: "ห้ามใช้น้ำทำการดับ"
+            },
+            {
+                q: "16. ข้อใดเป็นการป้องกันการเกิดอัคคีภัย",
+                choices: [
+                    "แดงสูบบุหรี่ในบริเวณที่ห้ามสูบ",
+                    "สมบัติเชื่อมเหล็กข้างกองกระดาษ",
+                    "ปรีชาศึกษาคู่มือการใช้เครื่องทำน้ำอุ่น",
+                    "ผักกาดเผาขยะบริเวณที่มีลมแรง"
+                ],
+                ans: "ปรีชาศึกษาคู่มือการใช้เครื่องทำน้ำอุ่น"
+            },
+            {
+                q: "17. เมื่อมีก๊าซรั่วไหลออกมาข้อใดกล่าวถูกต้อง",
+                choices: [
+                    "ห้ามจุดไฟในบริเวณที่มีกลิ่นก๊าซ",
+                    "ห้ามปิด - เปิดอุปกรณ์ไฟฟ้าในบริเวณที่มีกลิ่นก๊าซ",
+                    "ห้ามถอด - ปลั๊กไฟฟ้าในบริเวณที่มีกลิ่นก๊าซ",
+                    "ถูกทุกข้อ"
+                ],
+                ans: "ถูกทุกข้อ"
+            },
+            {
+                q: "18. ข้อใดคือระบบแจ้งเหตุเพลิงไหม้อัตโนมัติ",
+                choices: [
+                    "ระบบตรวจจับควัน/ระบบตรวจจับความร้อน",
+                    "เสียงตามสาย",
+                    "ตัวแจ้งเหตุเพลิงไหม้",
+                    "สายฉีดน้ำดับเพลิง"
+                ],
+                ans: "ระบบตรวจจับควัน/ระบบตรวจจับความร้อน"
+            },
+            {
+                q: "19. เมื่อเราเข้าพักในโรงแรม หรือสถานที่อื่นที่ไม่คุ้นเคยสิ่งที่ต้องสังเกตอันดับแรกคือ",
+                choices: [
+                    "ห้องน้ำ",
+                    "ผู้ติดต่อประสานงาน",
+                    "ประตูหนีไฟ/เส้นทางหนีไฟ",
+                    "ห้องพักของตัวเอง"
+                ],
+                ans: "ประตูหนีไฟ/เส้นทางหนีไฟ"
+            },
+            {
+                q: "20. หากพบเหตุเพลิงไหม้ในพื้นที่กรุงเทพมหานครต้องโทรแจ้งที่หมายเลขใด",
+                choices: [
+                    "191",
+                    "123",
+                    "184",
+                    "199"
+                ],
+                ans: "199"
+            }
+        ];
+
+        let currentQuestions = [];
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let timerInterval;
+        let totalTimeLeft = 1200; // รวมเวลา 20 นาที (1200 วินาที)
+        let userData = {};
+        
+        let selectedAnswer = null; 
+        let currentCorrectAnswer = null; 
+
+        // ดึงประวัติว่าชื่อนี้เคยสอบไปหรือยัง
+        let completedTestsPromise = fetch(GAS_URL).then(res => res.json()).catch(() => []);
+
+        function shuffle(array) {
+            let currentIndex = array.length, randomIndex;
+            while (currentIndex != 0) {
+                randomIndex = Math.floor(Math.random() * currentIndex);
+                currentIndex--;
+                [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+            }
+            return array;
+        }
+
+        // แปลงวินาทีเป็น MM:SS
+        function formatTime(seconds) {
+            const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+            const s = (seconds % 60).toString().padStart(2, '0');
+            return `${m}:${s}`;
+        }
+
+        document.getElementById('register-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            userData = {
+                name: document.getElementById('emp-name').value.trim(),
+                company: document.getElementById('company').value.trim(),
+                testType: document.getElementById('test-type').value
+            };
+
+            document.getElementById('loading').classList.remove('hidden');
+
+            try {
+                const completedTests = await completedTestsPromise;
+                // เช็คประวัติด้วยชื่อ + รอบการทดสอบ
+                const hasTaken = completedTests.some(record => record.name === userData.name && record.testType === userData.testType);
+                
+                document.getElementById('loading').classList.add('hidden');
+
+                if (hasTaken) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'คุณทำแบบทดสอบไปแล้ว!',
+                        text: `ชื่อ ${userData.name} ได้ทำการทดสอบรอบ "${userData.testType}" ไปแล้ว ระบบไม่อนุญาตให้ทำซ้ำ`,
+                        confirmButtonColor: '#ea580c'
+                    });
+                    return;
+                }
+
+                startQuiz();
+            } catch (error) {
+                document.getElementById('loading').classList.add('hidden');
+                startQuiz();
+            }
+        });
+
+        function startQuiz() {
+            document.getElementById('register-page').classList.add('hidden');
+            document.getElementById('quiz-page').classList.remove('hidden');
+            
+            // สลับข้อสอบ
+            currentQuestions = shuffle(JSON.parse(JSON.stringify(quizData)));
+            currentQuestionIndex = 0;
+            score = 0;
+            totalTimeLeft = 1200; // 20 นาที
+            
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'info',
+                title: 'เริ่มทำแบบทดสอบ',
+                text: 'คุณมีเวลาทั้งหมด 20 นาที',
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true
+            });
+
+            // เริ่มจับเวลารวม
+            timerInterval = setInterval(() => {
+                if(totalTimeLeft > 0) totalTimeLeft--;
+                document.getElementById('time-text').innerText = formatTime(totalTimeLeft);
+                
+                if (totalTimeLeft <= 300) { // เตือนเมื่อเหลือ 5 นาที
+                    document.getElementById('timer').classList.add('text-red-600', 'bg-red-50');
+                    document.querySelector('.fa-stopwatch').classList.add('text-red-500');
+                    document.querySelector('.fa-stopwatch').classList.remove('text-orange-500');
+                }
+
+                if (totalTimeLeft === 0) {
+                    // ปล่อยให้เวลาหยุดที่ 00:00 ไม่บังคับปิด (ตาม Requirement)
+                    clearInterval(timerInterval);
+                    Swal.fire({
+                        toast: true,
+                        position: 'top',
+                        icon: 'warning',
+                        title: 'หมดเวลา!',
+                        text: 'กรุณารีบส่งคำตอบ',
+                        showConfirmButton: false,
+                        timer: 5000
+                    });
+                }
+            }, 1000);
+
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            selectedAnswer = null; 
+            document.getElementById('btn-confirm').classList.add('hidden');
+            
+            const q = currentQuestions[currentQuestionIndex];
+            currentCorrectAnswer = q.ans; 
+            
+            document.getElementById('question-counter').innerHTML = `<i class="fas fa-question-circle text-orange-500 mr-1"></i> ข้อ ${currentQuestionIndex + 1}/${currentQuestions.length}`;
+            
+            // ตัดตัวเลข "1." นำหน้าออก (ถ้ามี) เพราะเราสลับข้อแล้ว
+            let qText = q.q.replace(/^\d+\.\s*/, '');
+            document.getElementById('question-text').innerText = qText;
+
+            // ตรวจสอบว่าข้อนี้มีรูปภาพหรือไม่ (ข้อ 10)
+            const imgContainer = document.getElementById('image-container');
+            const imgEl = document.getElementById('question-image');
+            if (q.image) {
+                imgEl.src = q.image;
+                imgContainer.classList.remove('hidden');
+            } else {
+                imgContainer.classList.add('hidden');
+            }
+
+            const choicesContainer = document.getElementById('choices-container');
+            choicesContainer.innerHTML = '';
+            
+            // สลับตัวเลือก
+            const shuffledChoices = shuffle([...q.choices]);
+            
+            shuffledChoices.forEach((choice, index) => {
+                const btn = document.createElement('button');
+                btn.id = `choice-btn-${index}`;
+                btn.className = "choice-btn w-full text-left p-4 rounded-xl border-2 border-gray-100 bg-gray-50 hover:bg-orange-50 hover:border-orange-300 transition-all duration-200 text-gray-700 flex items-start group shadow-sm";
+                
+                btn.innerHTML = `
+                    <div class="choice-icon flex-shrink-0 w-8 h-8 rounded-full bg-white border border-gray-300 flex items-center justify-center mr-3 group-hover:border-orange-400 group-hover:bg-orange-100 transition-colors">
+                        <span class="choice-number text-sm font-bold text-gray-500 group-hover:text-orange-600">${index + 1}</span>
+                    </div>
+                    <span class="mt-1">${choice}</span>
+                `;
+                
+                btn.onclick = () => selectChoice(choice, btn.id);
+                choicesContainer.appendChild(btn);
+            });
+        }
+
+        function selectChoice(choice, btnId) {
+            selectedAnswer = choice;
+            
+            document.querySelectorAll('.choice-btn').forEach(btn => {
+                btn.classList.remove('border-orange-500', 'bg-orange-50');
+                btn.classList.add('border-gray-100', 'bg-gray-50');
+                
+                const icon = btn.querySelector('.choice-icon');
+                icon.classList.remove('bg-orange-500', 'border-orange-500');
+                icon.classList.add('bg-white', 'border-gray-300');
+                
+                const number = btn.querySelector('.choice-number');
+                number.classList.remove('text-white');
+                number.classList.add('text-gray-500');
+            });
+
+            const activeBtn = document.getElementById(btnId);
+            activeBtn.classList.remove('border-gray-100', 'bg-gray-50');
+            activeBtn.classList.add('border-orange-500', 'bg-orange-50');
+            
+            const activeIcon = activeBtn.querySelector('.choice-icon');
+            activeIcon.classList.remove('bg-white', 'border-gray-300');
+            activeIcon.classList.add('bg-orange-500', 'border-orange-500');
+            
+            const activeNumber = activeBtn.querySelector('.choice-number');
+            activeNumber.classList.remove('text-gray-500');
+            activeNumber.classList.add('text-white');
+            
+            document.getElementById('btn-confirm').classList.remove('hidden');
+        }
+
+        function confirmAnswer() {
+            if (!selectedAnswer) return; 
+            
+            if (selectedAnswer === currentCorrectAnswer) {
+                score++;
+            }
+            nextQuestion();
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < currentQuestions.length) {
+                loadQuestion();
+            } else {
+                finishQuiz();
+            }
+        }
+
+        async function finishQuiz() {
+            clearInterval(timerInterval); // หยุดเวลา
+            document.getElementById('quiz-page').classList.add('hidden');
+            document.getElementById('result-page').classList.remove('hidden');
+            
+            document.getElementById('score-display').innerText = score;
+            document.getElementById('total-display').innerText = currentQuestions.length;
+
+            const Toast = Swal.mixin({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timerProgressBar: true,
+            });
+            
+            Toast.fire({
+                icon: 'info',
+                title: 'กำลังส่งคำตอบ...'
+            });
+
+            userData.score = score;
+
+            try {
+                const response = await fetch(GAS_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(userData)
+                });
+                const result = await response.json();
+                
+                if(result.status === 'duplicate') {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'พบข้อมูลซ้ำ',
+                        text: `ชื่อ ${userData.name} ได้ทำการส่งคำตอบรอบ "${userData.testType}" ไปแล้ว ข้อมูลรอบนี้จะไม่ถูกบันทึกซ้ำ`,
+                        confirmButtonColor: '#ea580c'
+                    });
+                    return;
+                }
+                
+                Toast.fire({
+                    icon: 'success',
+                    title: 'บันทึกข้อมูลสำเร็จ!',
+                    timer: 3000
+                });
+
+            } catch (error) {
+                Toast.fire({
+                    icon: 'error',
+                    title: 'ส่งคำตอบไม่สำเร็จ กรุณาแจ้งผู้ดูแลระบบ',
+                    timer: 5000
+                });
+            }
+        }
+    </script>
+</body>
+</html>
